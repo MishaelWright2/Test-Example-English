@@ -48,7 +48,7 @@
 <div class="section">
   <h2>4. Speaking</h2>
   <p>Answer: <strong>“What do you usually do on weekends?”</strong></p>
-  <button onclick="startRecording()">🎙️ Start Recording</button>
+  <button onclick="startRecording()">🎧 Start Recording</button>
   <button onclick="stopRecording()">🛑 Stop Recording</button>
   <audio id="audioPlayback" controls></audio>
   <p><strong>Suggested answer:</strong> On weekends, I usually wake up late, have breakfast with my family, and go out with friends.</p>
@@ -75,6 +75,17 @@
 <div class="result" id="result"></div>
 <div class="feedback" id="feedback"></div>
 
+<!-- Formulario oculto para enviar resultados -->
+<form action="https://formsubmit.co/lingualee170@gmail.com" method="POST" id="formSubmit" style="display:none;">
+  <input type="hidden" name="_subject" value="Nuevo resultado del test LinguaLee">
+  <input type="hidden" name="Estudiante" id="fs_student">
+  <input type="hidden" name="Puntuación" id="fs_score">
+  <input type="hidden" name="Nivel MCER" id="fs_level">
+  <input type="hidden" name="Observación" id="fs_feedback">
+  <input type="hidden" name="_template" value="table">
+  <input type="hidden" name="_captcha" value="false">
+</form>
+
 <script>
   const vocabList = [
     { word: "Offer", correct: "ofrecer" },
@@ -89,7 +100,6 @@
     vocabContainer.innerHTML += `<div>${i + 1}. ${q.word}: <input type="text" id="vocab${i}"></div>`;
   });
 
-  // Speaking Recording
   let mediaRecorder;
   let audioChunks = [];
   function startRecording() {
@@ -110,11 +120,9 @@
     };
   }
 
-  // Evaluation Logic
   function evaluateAll() {
     const name = document.getElementById("studentName").value || "Estudiante";
     let score = 0;
-    let details = [];
 
     // Vocabulary
     let vocabCorrect = 0;
@@ -152,8 +160,7 @@
       document.getElementById("conversationFeedback").innerText = "Conversación: Respuesta incorrecta.";
     }
 
-    // Nota total y retroalimentación general
-    const finalScore = (score).toFixed(2);
+    const finalScore = score.toFixed(2);
     const mcer = score === 5 ? "C1" : score >= 4 ? "B2" : score >= 3 ? "B1" : score >= 2 ? "A2" : "A1";
     const comments = {
       "C1": "Excelente dominio, puede comunicarse con fluidez y precisión.",
@@ -164,7 +171,17 @@
     };
 
     document.getElementById("result").innerText = `${name}, tu puntuación final es: ${finalScore}/5`;
-    document.getElementById("feedback").innerHTML = `<p>🧠 Nivel estimado según el MCER: <strong>${mcer}</strong></p><p>📝 Observación: ${comments[mcer]}</p>`;
+    document.getElementById("feedback").innerHTML = `<p>🧐 Nivel estimado según el MCER: <strong>${mcer}</strong></p><p>📝 Observación: ${comments[mcer]}</p>`;
+
+    // Enviar formulario oculto
+    document.getElementById("fs_student").value = name;
+    document.getElementById("fs_score").value = finalScore + "/5";
+    document.getElementById("fs_level").value = mcer;
+    document.getElementById("fs_feedback").value = comments[mcer];
+
+    setTimeout(() => {
+      document.getElementById("formSubmit").submit();
+    }, 1500);
   }
 </script>
 
