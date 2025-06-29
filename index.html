@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>LinguaLee Test - Full Skills</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; color: #2c3e50; }
+    h2 { color: #34495e; }
+    textarea, input[type="text"] { width: 90%; padding: 10px; margin-bottom: 10px; }
+    .section { margin-top: 30px; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    button { padding: 10px 20px; background: #27ae60; color: #fff; border: none; cursor: pointer; border-radius: 5px; }
+    button:hover { background: #219150; }
+    .result, .feedback { margin-top: 20px; font-weight: bold; }
+    audio { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>LinguaLee: English Evaluation – All Skills</h1>
+<p>Student's Name: <input type="text" id="studentName" placeholder="Your full name"></p>
+
+<!-- Section 1: Vocabulary (Use of English) -->
+<div class="section" id="vocab">
+  <h2>1. Use of English – Vocabulary</h2>
+  <p>Translate the following words to Spanish:</p>
+  <div id="vocabQuestions"></div>
+</div>
+
+<!-- Section 2: Reading -->
+<div class="section">
+  <h2>2. Reading Comprehension</h2>
+  <p>Read the following text and answer the question:</p>
+  <p><em>“Sarah goes to the market every Saturday. She buys vegetables, fruits, and bread. She likes to cook lunch for her family.”</em></p>
+  <p>What does Sarah do every Saturday?</p>
+  <input type="text" id="readingAnswer">
+</div>
+
+<!-- Section 3: Writing -->
+<div class="section">
+  <h2>3. Writing</h2>
+  <p>Write a short paragraph (3-5 lines) describing your daily routine.</p>
+  <textarea id="writingInput" rows="5"></textarea>
+</div>
+
+<!-- Section 4: Speaking -->
+<div class="section">
+  <h2>4. Speaking</h2>
+  <p>Record yourself answering: <strong>“What do you usually do on weekends?”</strong></p>
+  <button onclick="startRecording()">🎙️ Start Recording</button>
+  <button onclick="stopRecording()">🛑 Stop Recording</button>
+  <audio id="audioPlayback" controls></audio>
+</div>
+
+<!-- Section 5: Conversational Skill -->
+<div class="section">
+  <h2>5. Conversational Skill</h2>
+  <p>Choose the correct response:</p>
+  <p>– A: “Hi! How are you today?”</p>
+  <select id="conversationSelect">
+    <option value="">-- Choose your answer --</option>
+    <option value="wrong">I like pizza.</option>
+    <option value="correct">I’m fine, thank you!</option>
+    <option value="wrong">My name is Sarah.</option>
+  </select>
+</div>
+
+<!-- Final Evaluation Button -->
+<div class="section">
+  <button onclick="evaluateAll()">Enviar evaluación completa</button>
+</div>
+
+<!-- Results -->
+<div class="result" id="result"></div>
+<div class="feedback" id="feedback"></div>
+
+<script>
+  const vocabList = [
+    { word: "Offer", correct: "ofrecer" },
+    { word: "Monday", correct: "lunes" },
+    { word: "Blue", correct: "azul" },
+    { word: "House", correct: "casa" },
+    { word: "Sky", correct: "cielo" },
+  ];
+
+  const vocabContainer = document.getElementById("vocabQuestions");
+  vocabList.forEach((q, i) => {
+    vocabContainer.innerHTML += `<div>${i + 1}. ${q.word}: <input type="text" id="vocab${i}"></div>`;
+  });
+
+  // Speaking (Graba y reproduce)
+  let mediaRecorder;
+  let audioChunks = [];
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      });
+  }
+
+  function stopRecording() {
+    mediaRecorder.stop();
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      document.getElementById("audioPlayback").src = audioUrl;
+    };
+  }
+
+  // Evaluador principal
+  function evaluateAll() {
+    const name = document.getElementById("studentName").value || "Estudiante";
+    let total = 0;
+    let max = 5;
+
+    // Vocabulario
+    let correctVocab = 0;
+    vocabList.forEach((q, i) => {
+      const ans = document.getElementById("vocab" + i).value.trim().toLowerCase();
+      if (ans === q.correct) correctVocab++;
+    });
+    total += correctVocab;
+
+    // Reading
+    const reading = document.getElementById("readingAnswer").value.trim().toLowerCase();
+    if (reading.includes("she goes to the market") || reading.includes("buys vegetables")) {
+      total++;
+    }
+
+    // Writing (valoramos extensión y palabras comunes)
+    const writing = document.getElementById("writingInput").value.trim().toLowerCase();
+    if (writing.length > 30 && (writing.includes("wake") || writing.includes("school") || writing.includes("breakfast"))) {
+      total++;
+    }
+
+    // Conversación
+    const conv = document.getElementById("conversationSelect").value;
+    if (conv === "correct") total++;
+
+    const score = (total / max) * 100;
+
+    let msg = "";
+    if (score === 100) {
+      msg = "¡Excelente! Tienes un dominio sobresaliente de esta lección.";
+    } else if (score >= 80) {
+      msg = "Muy bien. Aún puedes mejorar pequeños detalles.";
+    } else if (score >= 60) {
+      msg = "Buen intento, pero necesitas reforzar varios puntos.";
+    } else {
+      msg = "Debes estudiar el módulo nuevamente y practicar más seguido.";
+    }
+
+    document.getElementById("result").innerText = `${name}, tu puntuación total es: ${score.toFixed(2)}%`;
+    document.getElementById("feedback").innerHTML = `<p>${msg}</p>`;
+  }
+</script>
+
+</body>
+</html>
