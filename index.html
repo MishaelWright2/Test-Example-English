@@ -6,11 +6,11 @@
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; color: #2c3e50; }
     h2 { color: #34495e; }
-    textarea, input[type="text"] { width: 90%; padding: 10px; margin-bottom: 10px; }
+    textarea, input[type="text"], select { width: 90%; padding: 10px; margin-bottom: 10px; }
     .section { margin-top: 30px; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     button { padding: 10px 20px; background: #27ae60; color: #fff; border: none; cursor: pointer; border-radius: 5px; }
     button:hover { background: #219150; }
-    .result, .feedback { margin-top: 20px; font-weight: bold; }
+    .result, .feedback, .detailed-feedback { margin-top: 20px; font-weight: bold; }
     audio { margin-top: 10px; }
   </style>
 </head>
@@ -19,42 +19,44 @@
 <h1>LinguaLee: English Evaluation – All Skills</h1>
 <p>Student's Name: <input type="text" id="studentName" placeholder="Your full name"></p>
 
-<!-- Section 1: Vocabulary (Use of English) -->
+<!-- Section 1: Vocabulary -->
 <div class="section" id="vocab">
-  <h2>1. Use of English – Vocabulary</h2>
+  <h2>1. Vocabulary</h2>
   <p>Translate the following words to Spanish:</p>
   <div id="vocabQuestions"></div>
+  <p id="vocabFeedback" class="detailed-feedback"></p>
 </div>
 
 <!-- Section 2: Reading -->
 <div class="section">
   <h2>2. Reading Comprehension</h2>
-  <p>Read the following text and answer the question:</p>
-  <p><em>“Sarah goes to the market every Saturday. She buys vegetables, fruits, and bread. She likes to cook lunch for her family.”</em></p>
+  <p><em>“Sarah goes to the market every Saturday. She buys vegetables, fruits, and bread.”</em></p>
   <p>What does Sarah do every Saturday?</p>
   <input type="text" id="readingAnswer">
+  <p id="readingFeedback" class="detailed-feedback"></p>
 </div>
 
 <!-- Section 3: Writing -->
 <div class="section">
   <h2>3. Writing</h2>
-  <p>Write a short paragraph (3-5 lines) describing your daily routine.</p>
+  <p>Write a paragraph describing your daily routine.</p>
   <textarea id="writingInput" rows="5"></textarea>
+  <p id="writingFeedback" class="detailed-feedback"></p>
 </div>
 
 <!-- Section 4: Speaking -->
 <div class="section">
   <h2>4. Speaking</h2>
-  <p>Record yourself answering: <strong>“What do you usually do on weekends?”</strong></p>
+  <p>Answer: <strong>“What do you usually do on weekends?”</strong></p>
   <button onclick="startRecording()">🎙️ Start Recording</button>
   <button onclick="stopRecording()">🛑 Stop Recording</button>
   <audio id="audioPlayback" controls></audio>
+  <p><strong>Suggested answer:</strong> On weekends, I usually wake up late, have breakfast with my family, and go out with friends.</p>
 </div>
 
 <!-- Section 5: Conversational Skill -->
 <div class="section">
   <h2>5. Conversational Skill</h2>
-  <p>Choose the correct response:</p>
   <p>– A: “Hi! How are you today?”</p>
   <select id="conversationSelect">
     <option value="">-- Choose your answer --</option>
@@ -62,14 +64,14 @@
     <option value="correct">I’m fine, thank you!</option>
     <option value="wrong">My name is Sarah.</option>
   </select>
+  <p id="conversationFeedback" class="detailed-feedback"></p>
 </div>
 
-<!-- Final Evaluation Button -->
+<!-- Submit Section -->
 <div class="section">
   <button onclick="evaluateAll()">Enviar evaluación completa</button>
 </div>
 
-<!-- Results -->
 <div class="result" id="result"></div>
 <div class="feedback" id="feedback"></div>
 
@@ -87,7 +89,7 @@
     vocabContainer.innerHTML += `<div>${i + 1}. ${q.word}: <input type="text" id="vocab${i}"></div>`;
   });
 
-  // Speaking (Graba y reproduce)
+  // Speaking Recording
   let mediaRecorder;
   let audioChunks = [];
   function startRecording() {
@@ -99,7 +101,6 @@
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       });
   }
-
   function stopRecording() {
     mediaRecorder.stop();
     mediaRecorder.onstop = () => {
@@ -109,51 +110,61 @@
     };
   }
 
-  // Evaluador principal
+  // Evaluation Logic
   function evaluateAll() {
     const name = document.getElementById("studentName").value || "Estudiante";
-    let total = 0;
-    let max = 5;
+    let score = 0;
+    let details = [];
 
-    // Vocabulario
-    let correctVocab = 0;
+    // Vocabulary
+    let vocabCorrect = 0;
     vocabList.forEach((q, i) => {
       const ans = document.getElementById("vocab" + i).value.trim().toLowerCase();
-      if (ans === q.correct) correctVocab++;
+      if (ans === q.correct) vocabCorrect++;
     });
-    total += correctVocab;
+    score += (vocabCorrect === 5 ? 1 : vocabCorrect >= 3 ? 0.5 : 0);
+    document.getElementById("vocabFeedback").innerText = `Vocabulario: ${vocabCorrect}/5 correctas.`;
 
     // Reading
     const reading = document.getElementById("readingAnswer").value.trim().toLowerCase();
     if (reading.includes("she goes to the market") || reading.includes("buys vegetables")) {
-      total++;
+      score++;
+      document.getElementById("readingFeedback").innerText = "Lectura: Correcta.";
+    } else {
+      document.getElementById("readingFeedback").innerText = "Lectura: Incorrecta o incompleta.";
     }
 
-    // Writing (valoramos extensión y palabras comunes)
+    // Writing
     const writing = document.getElementById("writingInput").value.trim().toLowerCase();
     if (writing.length > 30 && (writing.includes("wake") || writing.includes("school") || writing.includes("breakfast"))) {
-      total++;
-    }
-
-    // Conversación
-    const conv = document.getElementById("conversationSelect").value;
-    if (conv === "correct") total++;
-
-    const score = (total / max) * 100;
-
-    let msg = "";
-    if (score === 100) {
-      msg = "¡Excelente! Tienes un dominio sobresaliente de esta lección.";
-    } else if (score >= 80) {
-      msg = "Muy bien. Aún puedes mejorar pequeños detalles.";
-    } else if (score >= 60) {
-      msg = "Buen intento, pero necesitas reforzar varios puntos.";
+      score++;
+      document.getElementById("writingFeedback").innerText = "Escritura: Aceptable.";
     } else {
-      msg = "Debes estudiar el módulo nuevamente y practicar más seguido.";
+      document.getElementById("writingFeedback").innerText = "Escritura: Necesita más contenido.";
     }
 
-    document.getElementById("result").innerText = `${name}, tu puntuación total es: ${score.toFixed(2)}%`;
-    document.getElementById("feedback").innerHTML = `<p>${msg}</p>`;
+    // Conversation
+    const conv = document.getElementById("conversationSelect").value;
+    if (conv === "correct") {
+      score++;
+      document.getElementById("conversationFeedback").innerText = "Conversación: Respuesta correcta.";
+    } else {
+      document.getElementById("conversationFeedback").innerText = "Conversación: Respuesta incorrecta.";
+    }
+
+    // Nota total y retroalimentación general
+    const finalScore = (score).toFixed(2);
+    const mcer = score === 5 ? "C1" : score >= 4 ? "B2" : score >= 3 ? "B1" : score >= 2 ? "A2" : "A1";
+    const comments = {
+      "C1": "Excelente dominio, puede comunicarse con fluidez y precisión.",
+      "B2": "Muy buen nivel, con pequeños errores pero buena comprensión general.",
+      "B1": "Nivel intermedio. Se comunica con esfuerzo, pero entiende los temas.",
+      "A2": "Nivel básico. Necesita mejorar estructura y vocabulario.",
+      "A1": "Requiere trabajo en todos los aspectos básicos del idioma."
+    };
+
+    document.getElementById("result").innerText = `${name}, tu puntuación final es: ${finalScore}/5`;
+    document.getElementById("feedback").innerHTML = `<p>🧠 Nivel estimado según el MCER: <strong>${mcer}</strong></p><p>📝 Observación: ${comments[mcer]}</p>`;
   }
 </script>
 
