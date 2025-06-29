@@ -76,7 +76,7 @@
 <div class="feedback" id="feedback"></div>
 
 <!-- Formulario oculto para enviar resultados -->
-<form action="https://formsubmit.co/lingualee170@gmail.com" method="POST" id="formSubmit" style="display:none;">
+<form action="https://formsubmit.co/el/papaco" method="POST" id="formSubmit" style="display:none;">
   <input type="hidden" name="_subject" value="Nuevo resultado del test LinguaLee">
   <input type="hidden" name="Estudiante" id="fs_student">
   <input type="hidden" name="Puntuación" id="fs_score">
@@ -124,7 +124,6 @@
     const name = document.getElementById("studentName").value || "Estudiante";
     let score = 0;
 
-    // Vocabulary
     let vocabCorrect = 0;
     vocabList.forEach((q, i) => {
       const ans = document.getElementById("vocab" + i).value.trim().toLowerCase();
@@ -133,7 +132,6 @@
     score += (vocabCorrect === 5 ? 1 : vocabCorrect >= 3 ? 0.5 : 0);
     document.getElementById("vocabFeedback").innerText = `Vocabulario: ${vocabCorrect}/5 correctas.`;
 
-    // Reading
     const reading = document.getElementById("readingAnswer").value.trim().toLowerCase();
     if (reading.includes("she goes to the market") || reading.includes("buys vegetables")) {
       score++;
@@ -142,7 +140,6 @@
       document.getElementById("readingFeedback").innerText = "Lectura: Incorrecta o incompleta.";
     }
 
-    // Writing
     const writing = document.getElementById("writingInput").value.trim().toLowerCase();
     if (writing.length > 30 && (writing.includes("wake") || writing.includes("school") || writing.includes("breakfast"))) {
       score++;
@@ -151,7 +148,6 @@
       document.getElementById("writingFeedback").innerText = "Escritura: Necesita más contenido.";
     }
 
-    // Conversation
     const conv = document.getElementById("conversationSelect").value;
     if (conv === "correct") {
       score++;
@@ -173,7 +169,6 @@
     document.getElementById("result").innerText = `${name}, tu puntuación final es: ${finalScore}/5`;
     document.getElementById("feedback").innerHTML = `<p>🧐 Nivel estimado según el MCER: <strong>${mcer}</strong></p><p>📝 Observación: ${comments[mcer]}</p>`;
 
-    // Enviar formulario oculto
     document.getElementById("fs_student").value = name;
     document.getElementById("fs_score").value = finalScore + "/5";
     document.getElementById("fs_level").value = mcer;
